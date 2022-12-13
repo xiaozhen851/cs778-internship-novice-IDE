@@ -1,10 +1,12 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Wrapper from '../assets/wrappers/RegisterPage'
 import { Alert, FormRow, WhiteLogo } from '../Component'
 import { useAppContext } from '../Context/appContext'
+import { useNavigate } from 'react-router-dom'
+
 
 const Register = () => {
-    const {showAlert,displayAlert} = useAppContext()
+    const {isLoading, showAlert, displayAlert, user, setUpUser} = useAppContext()
     const initialstate = {
         name : "",
         email : "",
@@ -16,9 +18,20 @@ const Register = () => {
     const toggleMember = () => {
         SetValues({ ...values, isMember: !values.isMember })
     }
+    const navigate = useNavigate()
+
+    useEffect(()=>{
+        if(user){
+            setTimeout(() => {
+                navigate("/")
+            }, 3000);
+            console.log(user.name)
+        }
+    
+    },[user,navigate])
     const handleChange = (e) =>{
         SetValues({...values,[e.target.name]:e.target.value})
-        console.log({...values})
+        // console.log({...values})
     }
     const handleSubmit = (e) =>{
         e.preventDefault()
@@ -27,6 +40,16 @@ const Register = () => {
             displayAlert()
             return
         }
+        // check whether the state are all fill?
+        const currentUser = { name, email, password }
+        // get user information
+        if(isMember){
+            setUpUser({currentUser, endpoint:"login", alertText:"Login Success! Redirecting..."})
+        }
+        else{
+            setUpUser({currentUser,endpoint:"register", alertText:"User Created! Redirecting..."})
+        }
+        // register user
     }
 
     return (
@@ -47,8 +70,8 @@ const Register = () => {
                     <FormRow type = "password" name = "password" value = {values.password} handleChange ={handleChange}/>
                 </div>
             }
-            <button className='btn btn-block'>
-                Submit
+            <button className='btn btn-block' disabled = {isLoading}>
+                {isLoading? "Loading":"Submit"}
             </button>
             <div>
                 <p>

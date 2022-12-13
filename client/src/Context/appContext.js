@@ -1,12 +1,20 @@
 import React, { useState, useReducer, useContext } from 'react'
-import { CLEAR_ALERT, DISPLAY_ALERT } from './action'
+import { CLEAR_ALERT, DISPLAY_ALERT, SETUP_USER_BEGIN,SETUP_USER_SUCCESS,SETUP_USER_ERROR } from './action'
 import reducer from './reducer'
+import axios from "axios"
 
-export const initialState = {
+const token = localStorage.getItem('token')
+const user = localStorage.getItem('user')
+const university = localStorage.getItem('location')
+
+const initialState = {
   isLoading: false,
   showAlert: false,
   alertText: '',
   alertType: '',
+  user: user ? JSON.parse(user) : null,
+  token:token,
+  university: university,
 }
 const AppContext = React.createContext()
 const AppProvider = ({ children }) => {
@@ -23,7 +31,38 @@ const AppProvider = ({ children }) => {
         type: CLEAR_ALERT,
       })
     }, 3000)
+  }
+  const addUserToLocalStorage = ({ user, token, university }) => {
+    localStorage.setItem('user', JSON.stringify(user))
+    localStorage.setItem('token', token)
+    localStorage.setItem('university', university)
+  }
 
+  const removeUserFromLocalStorage = () => {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      localStorage.removeItem('university')
+  }
+
+  const setUpUser = async ({currentUser, endpoint, alertText}) => {
+    dispatch({ type: SETUP_USER_BEGIN})
+    try {
+      const { data } = await axios.post(`/api/version1/auth/${endpoint}`, currentUser)
+      const { user, token, location } = data
+  
+      dispatch({
+        type: SETUP_USER_SUCCESS,
+        payload: { user, token, location, alertText},
+      })
+  
+      addUserToLocalStorage({ user, token, location })
+    } catch (error) {
+      dispatch({
+        type: SETUP_USER_ERROR,
+        payload: { msg: error.response.data.msg },
+      })
+    }
+    clearAlert()
   }
   return (
     <AppContext.Provider
@@ -31,6 +70,7 @@ const AppProvider = ({ children }) => {
         ...state,
         displayAlert,
         clearAlert,
+        setUpUser
       }}
     >
       {children}
@@ -42,4 +82,4 @@ const useAppContext = () => {
   return useContext(AppContext)
 }
 
-export { AppProvider, useAppContext }
+export { AppProvider, useAppContext,initialState }

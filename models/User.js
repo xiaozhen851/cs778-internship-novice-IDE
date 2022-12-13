@@ -57,4 +57,10 @@ UserSchema.methods.createJWT = function(){
     return jwt.sign({userID : this._id},process.env.JWT_SECRET,{expiresIn:process.env.JWT_LIFETIME})
 } //给每个user创造一个可以前后端沟通的token
 
+UserSchema.methods.comparePassword = async function (candidatePassword) {
+const isMatch = await bcrypt.compare(candidatePassword, this.password)
+return isMatch
+} //this.password是这个传入的password
+// candidatePassword是db里面的password
+
 export default mongoose.model("User",UserSchema)
