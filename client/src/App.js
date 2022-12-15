@@ -15,6 +15,7 @@ function App() {
           <Route index element = {<IDEPage></IDEPage>}></Route>
           <Route path = "ide" element = {<IDEPage></IDEPage>}></Route>
           <Route path = "profile" element = {<Profile></Profile>}></Route>
+          <Route path = "question" element = {<div>Problem</div>}></Route>
         </Route>
         <Route path="/register" element={<Register/>} />
         <Route path="/landing" element={<Landing />} />

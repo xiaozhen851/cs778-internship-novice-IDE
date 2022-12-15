@@ -10,11 +10,11 @@ const register = async(req,res) =>{
     }
     const userAlreadyExists = await User.findOne({email})
     if (userAlreadyExists){
-        throw new BadRequestAPIError("We have this already!")
+        throw new BadRequestAPIError("This email was registered already!")
     }
     const user = await User.create(req.body)
     const token = user.createJWT()
-    res.status(StatusCodes.OK).json({user:{name:user.name, email:user.email, location:user.location, lastName:user.lastName},token,location: user.location})
+    res.status(StatusCodes.OK).json({user:{name:user.name, email:user.email, university:user.university},token,university: user.university})
 
 
 }
@@ -35,14 +35,33 @@ const login = async(req,res) =>{
     else{
         const token = user.createJWT() //创建jwt token
         user.password = undefined //response中hidden password
-        res.status(StatusCodes.OK).json({user, token, location: user.location})
-        console.log({msg:`你好${user.name}`})
+        res.status(StatusCodes.OK).json({user, token, university: user.university})
+        console.log({msg:`Hi ${user.name}`})
     }
 
     
 }
-const updateUser = async(req,res)=>{
-    res.send("update user")
+const updateUser = async (req, res) => {
+    const {email, name, university } = req.body
+    if (!email || !name || !university) {
+      throw new BadRequestAPIError('Please provide all values')
+    }
+  
+    const user = await User.findOne({ _id: req.user.userID})
+
+    user.email = email
+    user.name = name
+    user.university = university
+  
+    await user.save()
+  
+    const token = user.createJWT()
+    res.status(StatusCodes.OK).json({
+      user,
+      token,
+      university:user.university
+    })
 }
+
 
 export {login, updateUser, register}
